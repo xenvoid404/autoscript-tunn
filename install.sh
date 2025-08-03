@@ -6,6 +6,9 @@
 # Author: Autoscript Team
 # Version: 2.0.0
 # License: MIT
+#
+# Quick Install:
+# wget -O install.sh https://raw.githubusercontent.com/your-repo/modern-tunneling-autoscript/main/install.sh && chmod +x install.sh && ./install.sh
 
 # Exit on any error
 set -e
@@ -26,8 +29,11 @@ readonly CONFIG_DIR="/etc/autoscript"
 readonly BIN_DIR="/usr/local/bin"
 readonly LOG_DIR="/var/log/autoscript"
 
-# Script repository (adjust if using your own repository)
-readonly REPO_URL="https://raw.githubusercontent.com/your-repo/modern-tunneling-autoscript/main"
+# GitHub repository configuration
+readonly GITHUB_USER="your-repo"  # Ganti dengan username GitHub Anda
+readonly GITHUB_REPO="modern-tunneling-autoscript"
+readonly GITHUB_BRANCH="main"
+readonly REPO_URL="https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}"
 
 # Print functions
 print_banner() {
@@ -45,6 +51,7 @@ print_banner() {
     echo "║  • System optimization                                   ║"
     echo "║                                                          ║"
     echo "║  Compatible: Debian 11+ | Ubuntu 22.04+                ║"
+    echo "║  Installation: One-command via wget                     ║"
     echo "╚══════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
 }
@@ -75,6 +82,7 @@ check_system_compatibility() {
     # Check if running as root
     if [[ $EUID -ne 0 ]]; then
         print_error "This script must be run as root"
+        print_info "Please run: sudo $0"
         exit 1
     fi
     
@@ -116,7 +124,18 @@ check_system_compatibility() {
 check_internet() {
     print_info "Checking internet connectivity..."
     
-    if ping -c 1 8.8.8.8 &> /dev/null; then
+    # Test connectivity to multiple servers
+    local test_hosts=("8.8.8.8" "1.1.1.1" "github.com")
+    local connectivity=false
+    
+    for host in "${test_hosts[@]}"; do
+        if ping -c 1 -W 3 "$host" &> /dev/null; then
+            connectivity=true
+            break
+        fi
+    done
+    
+    if [[ "$connectivity" == "true" ]]; then
         print_success "Internet connectivity verified"
     else
         print_error "No internet connectivity detected"
@@ -170,6 +189,7 @@ create_directory_structure() {
         "$LOG_DIR"
         "/var/lib/autoscript"
         "/usr/local/bin/autoscript-mgmt"
+        "/usr/local/bin/xray-mgmt"
     )
     
     for dir in "${directories[@]}"; do
@@ -183,38 +203,110 @@ create_directory_structure() {
     done
 }
 
-# Download and install autoscript files
+# Download file with retry mechanism
+download_file_with_retry() {
+    local url="$1"
+    local destination="$2"
+    local max_attempts=3
+    local attempt=0
+    
+    while [[ $attempt -lt $max_attempts ]]; do
+        ((attempt++))
+        print_info "Downloading $(basename "$destination") (attempt $attempt/$max_attempts)..."
+        
+        if wget -q --show-progress --timeout=30 --tries=2 -O "$destination" "$url"; then
+            print_success "Downloaded: $(basename "$destination")"
+            return 0
+        else
+            print_warning "Download attempt $attempt failed"
+            if [[ $attempt -lt $max_attempts ]]; then
+                sleep 2
+            fi
+        fi
+    done
+    
+    print_error "Failed to download after $max_attempts attempts: $url"
+    return 1
+}
+
+# Download and install autoscript files from GitHub
 download_autoscript_files() {
-    print_step "Downloading Autoscript Files"
+    print_step "Downloading Autoscript Files from GitHub"
     
-    # Since we're working locally, copy files from current directory
-    local current_dir="$(pwd)"
+    # Define files to download with their destinations
+    declare -A files_to_download=(
+        # Utility files
+        ["utils/common.sh"]="$INSTALL_DIR/utils/common.sh"
+        ["utils/logger.sh"]="$INSTALL_DIR/utils/logger.sh"
+        ["utils/validator.sh"]="$INSTALL_DIR/utils/validator.sh"
+        
+        # Configuration files
+        ["config/system.conf"]="$INSTALL_DIR/config/system.conf"
+        ["config/xray.json"]="$INSTALL_DIR/config/xray.json"
+        
+        # System scripts
+        ["scripts/system/deps.sh"]="$INSTALL_DIR/scripts/system/deps.sh"
+        ["scripts/system/optimize.sh"]="$INSTALL_DIR/scripts/system/optimize.sh"
+        ["scripts/system/firewall.sh"]="$INSTALL_DIR/scripts/system/firewall.sh"
+        
+        # Service scripts
+        ["scripts/services/ssh.sh"]="$INSTALL_DIR/scripts/services/ssh.sh"
+        ["scripts/services/xray.sh"]="$INSTALL_DIR/scripts/services/xray.sh"
+        
+        # Account management scripts
+        ["scripts/accounts/ssh-account.sh"]="$INSTALL_DIR/scripts/accounts/ssh-account.sh"
+    )
     
-    print_info "Copying autoscript files..."
+    # Download all files
+    local failed_downloads=()
+    for remote_path in "${!files_to_download[@]}"; do
+        local local_path="${files_to_download[$remote_path]}"
+        local url="$REPO_URL/$remote_path"
+        
+        if download_file_with_retry "$url" "$local_path"; then
+            # Set executable permissions for script files
+            if [[ "$local_path" == *.sh ]]; then
+                chmod +x "$local_path"
+            fi
+        else
+            failed_downloads+=("$remote_path")
+        fi
+    done
     
-    # Copy utility files
-    if [[ -d "$current_dir/utils" ]]; then
-        cp -r "$current_dir/utils"/* "$INSTALL_DIR/utils/"
-        chmod +x "$INSTALL_DIR/utils"/*.sh
-        print_success "Utilities copied"
-    fi
-    
-    # Copy configuration files
-    if [[ -d "$current_dir/config" ]]; then
-        cp -r "$current_dir/config"/* "$INSTALL_DIR/config/"
-        print_success "Configurations copied"
-    fi
-    
-    # Copy script files
-    if [[ -d "$current_dir/scripts" ]]; then
-        cp -r "$current_dir/scripts"/* "$INSTALL_DIR/scripts/"
-        chmod +x "$INSTALL_DIR/scripts"/*/*.sh
-        print_success "Scripts copied"
+    # Check if any downloads failed
+    if [[ ${#failed_downloads[@]} -gt 0 ]]; then
+        print_error "Failed to download the following files:"
+        for file in "${failed_downloads[@]}"; do
+            print_error "  - $file"
+        done
+        print_info "Please check your internet connection and GitHub repository access"
+        exit 1
     fi
     
     # Set proper permissions
     chmod -R 755 "$INSTALL_DIR"
     chmod 600 "$INSTALL_DIR/config/system.conf"
+    
+    print_success "All autoscript files downloaded successfully"
+}
+
+# Test GitHub connectivity
+test_github_connectivity() {
+    print_info "Testing GitHub connectivity..."
+    
+    local test_url="$REPO_URL/README.md"
+    if wget -q --spider --timeout=10 "$test_url"; then
+        print_success "GitHub repository accessible"
+        return 0
+    else
+        print_error "Cannot access GitHub repository"
+        print_info "Repository: $REPO_URL"
+        print_info "Please check:"
+        print_info "1. Internet connectivity"
+        print_info "2. GitHub repository exists and is public"
+        print_info "3. Repository URL is correct"
+        return 1
+    fi
 }
 
 # Run system optimization
@@ -292,36 +384,45 @@ setup_xray_services() {
 setup_firewall() {
     print_step "Configuring Firewall"
     
-    print_info "Installing and configuring UFW firewall..."
-    
-    # Install UFW if not present
-    if ! command -v ufw &> /dev/null; then
-        apt-get install -y ufw &> /dev/null
+    if [[ -f "$INSTALL_DIR/scripts/system/firewall.sh" ]]; then
+        print_info "Running firewall configuration script..."
+        if bash "$INSTALL_DIR/scripts/system/firewall.sh"; then
+            print_success "Firewall configured successfully"
+        else
+            print_warning "Firewall configuration had issues"
+        fi
+    else
+        print_info "Installing and configuring UFW firewall manually..."
+        
+        # Install UFW if not present
+        if ! command -v ufw &> /dev/null; then
+            apt-get install -y ufw &> /dev/null
+        fi
+        
+        # Reset UFW to defaults
+        ufw --force reset &> /dev/null
+        
+        # Set default policies
+        ufw default deny incoming &> /dev/null
+        ufw default allow outgoing &> /dev/null
+        
+        # Allow SSH ports
+        ufw allow 22/tcp comment "SSH" &> /dev/null
+        ufw allow 109/tcp comment "Dropbear SSH" &> /dev/null
+        ufw allow 143/tcp comment "Dropbear WebSocket" &> /dev/null
+        
+        # Allow Xray ports
+        ufw allow 80/tcp comment "Xray VMess/VLESS" &> /dev/null
+        ufw allow 443/tcp comment "Xray TLS" &> /dev/null
+        
+        # Allow WebSocket port
+        ufw allow 8880/tcp comment "SSH WebSocket" &> /dev/null
+        
+        # Enable UFW
+        ufw --force enable &> /dev/null
+        
+        print_success "Firewall configured and enabled"
     fi
-    
-    # Reset UFW to defaults
-    ufw --force reset &> /dev/null
-    
-    # Set default policies
-    ufw default deny incoming &> /dev/null
-    ufw default allow outgoing &> /dev/null
-    
-    # Allow SSH ports
-    ufw allow 22/tcp comment "SSH" &> /dev/null
-    ufw allow 109/tcp comment "Dropbear SSH" &> /dev/null
-    ufw allow 143/tcp comment "Dropbear WebSocket" &> /dev/null
-    
-    # Allow Xray ports
-    ufw allow 80/tcp comment "Xray VMess/VLESS" &> /dev/null
-    ufw allow 443/tcp comment "Xray TLS" &> /dev/null
-    
-    # Allow WebSocket port
-    ufw allow 8880/tcp comment "SSH WebSocket" &> /dev/null
-    
-    # Enable UFW
-    ufw --force enable &> /dev/null
-    
-    print_success "Firewall configured and enabled"
 }
 
 # Create management commands
@@ -360,11 +461,11 @@ show_menu() {
     echo -e "${WHITE}Main Menu:${NC}"
     echo ""
     echo "  ${GREEN}1.${NC} SSH Account Management"
-    echo "  ${GREEN}2.${NC} Xray Account Management"
+    echo "  ${GREEN}2.${NC} Xray Account Management" 
     echo "  ${GREEN}3.${NC} Service Management"
     echo "  ${GREEN}4.${NC} System Information"
     echo "  ${GREEN}5.${NC} View Logs"
-    echo "  ${GREEN}6.${NC} System Update"
+    echo "  ${GREEN}6.${NC} Update System"
     echo "  ${GREEN}7.${NC} Backup & Restore"
     echo "  ${GREEN}0.${NC} Exit"
     echo ""
@@ -453,32 +554,32 @@ xray_menu() {
         case $choice in
             1)
                 read -p "Enter username: " username
-                /usr/local/bin/xray-client add vmess "$username"
+                /usr/local/bin/xray-client add vmess "$username" 2>/dev/null || echo "Xray client manager not found"
                 read -p "Press Enter to continue..."
                 ;;
             2)
                 read -p "Enter username: " username
-                /usr/local/bin/xray-client add vless "$username"
+                /usr/local/bin/xray-client add vless "$username" 2>/dev/null || echo "Xray client manager not found"
                 read -p "Press Enter to continue..."
                 ;;
             3)
                 read -p "Enter username: " username
-                /usr/local/bin/xray-client add trojan "$username"
+                /usr/local/bin/xray-client add trojan "$username" 2>/dev/null || echo "Xray client manager not found"
                 read -p "Press Enter to continue..."
                 ;;
             4)
-                /usr/local/bin/xray-client list
+                /usr/local/bin/xray-client list 2>/dev/null || echo "Xray client manager not found"
                 read -p "Press Enter to continue..."
                 ;;
             5)
                 read -p "Enter username to remove: " username
-                /usr/local/bin/xray-client remove "$username"
+                /usr/local/bin/xray-client remove "$username" 2>/dev/null || echo "Xray client manager not found"
                 read -p "Press Enter to continue..."
                 ;;
             6)
                 read -p "Enter username: " username
-                server_ip=$(curl -s4 ifconfig.me)
-                /usr/local/bin/xray-client config "$username" "$server_ip"
+                server_ip=$(curl -s4 ifconfig.me 2>/dev/null || echo "Unable to get IP")
+                /usr/local/bin/xray-client config "$username" "$server_ip" 2>/dev/null || echo "Xray client manager not found"
                 read -p "Press Enter to continue..."
                 ;;
             0)
@@ -514,13 +615,13 @@ show_system_info() {
     
     # Network
     echo -e "${CYAN}Network:${NC}"
-    echo "Public IP: $(curl -s4 ifconfig.me)"
+    echo "Public IP: $(curl -s4 ifconfig.me 2>/dev/null || echo 'Unable to get IP')"
     echo ""
     
     # Services
     echo -e "${CYAN}Service Status:${NC}"
     for service in ssh dropbear xray; do
-        if systemctl is-active --quiet $service; then
+        if systemctl is-active --quiet $service 2>/dev/null; then
             echo -e "$service: ${GREEN}Running${NC}"
         else
             echo -e "$service: ${RED}Stopped${NC}"
@@ -540,20 +641,35 @@ main_loop() {
             1) ssh_menu ;;
             2) xray_menu ;;
             3) 
-                echo "Service management features coming soon..."
+                echo "Service management features:"
+                echo "- Restart SSH: systemctl restart ssh"
+                echo "- Restart Dropbear: systemctl restart dropbear"
+                echo "- Restart Xray: systemctl restart xray"
+                echo "- Check Status: systemctl status [service]"
                 read -p "Press Enter to continue..."
                 ;;
             4) show_system_info ;;
             5)
-                echo "Log viewing features coming soon..."
+                echo "Log locations:"
+                echo "- Main log: /var/log/autoscript/autoscript.log"
+                echo "- Error log: /var/log/autoscript/error.log"
+                echo "- Access log: /var/log/autoscript/access.log"
+                echo "- Xray logs: /var/log/xray/"
+                echo ""
+                echo "View logs with: tail -f /var/log/autoscript/autoscript.log"
                 read -p "Press Enter to continue..."
                 ;;
             6)
-                echo "System update features coming soon..."
+                echo "Updating system packages..."
+                apt update && apt upgrade -y
+                echo "System updated!"
                 read -p "Press Enter to continue..."
                 ;;
             7)
-                echo "Backup & restore features coming soon..."
+                echo "Backup & restore features:"
+                echo "- Configuration backup: tar -czf autoscript-backup.tar.gz /opt/autoscript /etc/autoscript"
+                echo "- Account backup: cp /etc/autoscript/accounts/* /backup/"
+                echo "- Restore: Extract backup and restart services"
                 read -p "Press Enter to continue..."
                 ;;
             0)
@@ -580,12 +696,14 @@ EOF
     chmod +x "$BIN_DIR/autoscript"
     
     # Create symbolic links for account management
-    ln -sf "$INSTALL_DIR/scripts/accounts/ssh-account.sh" "$BIN_DIR/ssh-account"
+    if [[ -f "$INSTALL_DIR/scripts/accounts/ssh-account.sh" ]]; then
+        ln -sf "$INSTALL_DIR/scripts/accounts/ssh-account.sh" "$BIN_DIR/ssh-account"
+    fi
     
     print_success "Management commands created"
     print_info "Main menu: autoscript"
     print_info "SSH accounts: ssh-account"
-    print_info "Xray clients: xray-client"
+    print_info "Xray clients: xray-client (if Xray is installed)"
 }
 
 # Setup cron jobs for maintenance
@@ -623,8 +741,6 @@ verify_installation() {
         "$INSTALL_DIR/utils/common.sh"
         "$INSTALL_DIR/config/system.conf"
         "$BIN_DIR/autoscript"
-        "$BIN_DIR/ssh-account"
-        "$BIN_DIR/xray-client"
     )
     
     for file in "${essential_files[@]}"; do
@@ -649,7 +765,7 @@ verify_installation() {
     done
     
     # Check commands
-    local commands=("autoscript" "ssh-account" "xray-client")
+    local commands=("autoscript")
     
     for cmd in "${commands[@]}"; do
         if command -v "$cmd" &> /dev/null; then
@@ -692,7 +808,7 @@ show_installation_summary() {
     echo -e "\n${CYAN}Management Commands:${NC}"
     echo "• Main menu: ${WHITE}autoscript${NC}"
     echo "• SSH accounts: ${WHITE}ssh-account${NC}"
-    echo "• Xray clients: ${WHITE}xray-client${NC}"
+    echo "• Xray clients: ${WHITE}xray-client${NC} (if available)"
     
     echo -e "\n${CYAN}Quick Start:${NC}"
     echo "1. Run ${WHITE}autoscript${NC} to access the main menu"
@@ -708,6 +824,11 @@ show_installation_summary() {
     echo "Dropbear WS Port: ${WHITE}143${NC}"
     echo "WebSocket Port: ${WHITE}8880${NC}"
     
+    echo -e "\n${CYAN}Installation Method:${NC}"
+    echo "✓ Downloaded from GitHub via wget"
+    echo "✓ One-command installation"
+    echo "✓ Remote installation capability"
+    
     echo -e "\n${CYAN}Important Notes:${NC}"
     echo "• All services are secured with fail2ban"
     echo "• System optimizations are applied"
@@ -715,7 +836,7 @@ show_installation_summary() {
     echo "• Logs are located in /var/log/autoscript/"
     
     echo -e "\n${GREEN}Installation completed successfully!${NC}"
-    echo -e "For support: Visit your GitHub repository or documentation"
+    echo -e "Repository: ${REPO_URL}"
     echo ""
 }
 
@@ -735,6 +856,7 @@ main() {
     print_banner
     
     print_info "Starting Modern Tunneling Autoscript installation..."
+    print_info "Repository: $REPO_URL"
     print_info "This will install and configure tunneling services on your server"
     echo ""
     
@@ -752,6 +874,13 @@ main() {
     # Run installation steps
     check_system_compatibility
     check_internet
+    
+    # Test GitHub connectivity before proceeding
+    if ! test_github_connectivity; then
+        print_error "Cannot proceed without GitHub access"
+        exit 1
+    fi
+    
     install_basic_dependencies
     create_directory_structure
     download_autoscript_files

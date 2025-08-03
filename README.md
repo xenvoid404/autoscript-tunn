@@ -47,11 +47,33 @@ autoscript/
 ```
 
 ## Installation
+
+### Method 1: One-Command Install (Recommended)
 ```bash
-# Download and run installer
-wget -O install.sh https://raw.githubusercontent.com/your-repo/autoscript/main/install.sh
+# Quick install via wget
+wget -O - https://raw.githubusercontent.com/your-repo/modern-tunneling-autoscript/main/quick-install.sh | sudo bash
+```
+
+### Method 2: Alternative One-Command Install
+```bash
+# Quick install via curl
+curl -fsSL https://raw.githubusercontent.com/your-repo/modern-tunneling-autoscript/main/quick-install.sh | sudo bash
+```
+
+### Method 3: Manual Download and Install
+```bash
+# Download main installer
+wget -O install.sh https://raw.githubusercontent.com/your-repo/modern-tunneling-autoscript/main/install.sh
 chmod +x install.sh
-./install.sh
+sudo ./install.sh
+```
+
+### Method 4: Clone Repository
+```bash
+# Clone repository
+git clone https://github.com/your-repo/modern-tunneling-autoscript.git
+cd modern-tunneling-autoscript
+sudo ./install.sh
 ```
 
 ## Features
