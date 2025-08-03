@@ -1,0 +1,101 @@
+{
+    "inbounds": [
+        {
+            "port": 58,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "eb908233-019a-4551-b3b4-fc5cde16ee0c",
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                    "path": "/worryfree"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "ws"
+        },
+        {
+            "port": 1057,
+            "listen": "127.0.0.1",
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "eb908233-019a-4551-b3b4-fc5cde16ee0c",
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "grpc",
+                "grpcSettings": {
+                    "serviceName": "vless"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "grpc"
+        },
+        {
+            "port": 57,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "eb908233-019a-4551-b3b4-fc5cde16ee0c",
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "httpupgrade",
+                "httpupgradeSettings": {
+                    "acceptProxyProtocol": true,
+                    "path": "/upvless"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "httpupgrade"
+        },
+        {
+            "port": 1058,
+            "listen": "127.0.0.1",
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "eb908233-019a-4551-b3b4-fc5cde16ee0c",
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "none"
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "tcp"
+        }
+    ]
+}

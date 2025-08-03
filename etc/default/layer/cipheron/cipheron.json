@@ -1,0 +1,100 @@
+{
+    "inbounds": [
+        {
+            "listen": "127.0.0.1",
+            "port": 1059,
+            "protocol": "trojan",
+            "settings": {
+                "clients": [
+                    {
+                        "password": "e61b67a1-2fce-4c3d-aa65-a65dc3c3e37a",
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "none"
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "tcp"
+        },
+        {
+            "listen": "127.0.0.1",
+            "port": 1060,
+            "protocol": "trojan",
+            "settings": {
+                "clients": [
+                    {
+                        "password": "e61b67a1-2fce-4c3d-aa65-a65dc3c3e37a",
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "path": "/trojan"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "ws"
+        },
+        {
+            "listen": "127.0.0.1",
+            "port": 1062,
+            "protocol": "trojan",
+            "settings": {
+                "clients": [
+                    {
+                        "password": "e61b67a1-2fce-4c3d-aa65-a65dc3c3e37a",
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "httpupgrade",
+                "httpupgradeSettings": {
+                    "acceptProxyProtocol": true,
+                    "path": "/uptrojan"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "httpupgrade"
+        },
+        {
+            "listen": "127.0.0.1",
+            "port": 1061,
+            "protocol": "trojan",
+            "settings": {
+                "clients": [
+                    {
+                        "password": "e61b67a1-2fce-4c3d-aa65-a65dc3c3e37a",
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "grpc",
+                "grpcSettings": {
+                    "serviceName": "trojan"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "grpc"
+        }
+    ]
+}

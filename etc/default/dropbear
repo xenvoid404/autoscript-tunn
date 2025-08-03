@@ -1,16 +1,15 @@
 # disabled because OpenSSH is installed
 # change to NO_START=0 to enable Dropbear
 NO_START=0
-
-# Dropbear Default Port
-DROPBEAR_PORT=143
+# the TCP port that Dropbear listens on
+DROPBEAR_PORT=90
 
 # any additional arguments for Dropbear
-DROPBEAR_EXTRA_ARGS="-p 109"
+DROPBEAR_EXTRA_ARGS="-p 143 -p 69"
 
 # specify an optional banner file containing a message to be
-# sent to clients before they connect, such as "/etc/kyt.txt"
-DROPBEAR_BANNER="/etc/kyt.txt"
+# sent to clients before they connect, such as "/etc/issue.net"
+DROPBEAR_BANNER="/etc/banner.konz"
 
 # RSA hostkey file (default: /etc/dropbear/dropbear_rsa_host_key)
 #DROPBEAR_RSAKEY="/etc/dropbear/dropbear_rsa_host_key"

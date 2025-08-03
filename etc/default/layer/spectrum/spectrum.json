@@ -1,0 +1,101 @@
+{
+    "inbounds": [
+        {
+            "port": 55,
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "79fe4ed8-d65c-4fb3-88cb-10f8e534f69d",
+                        "alterId": 0,
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                    "path": "/worryfree"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "ws"
+        },
+        {
+            "port": 1054,
+            "listen": "127.0.0.1",
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "79fe4ed8-d65c-4fb3-88cb-10f8e534f69d",
+                        "alterId": 0,
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "grpc",
+                "grpcSettings": {
+                    "serviceName": "vmess"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "grpc"
+        },
+        {
+            "port": 54,
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "79fe4ed8-d65c-4fb3-88cb-10f8e534f69d",
+                        "alterId": 0,
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "httpupgrade",
+                "httpupgradeSettings": {
+                    "acceptProxyProtocol": true,
+                    "path": "/upvmess"
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "httpupgrade"
+        },
+        {
+            "port": 1055,
+            "listen": "127.0.0.1",
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "79fe4ed8-d65c-4fb3-88cb-10f8e534f69d",
+                        "alterId": 0,
+                        "email": "idv1nusanetozcczswgnjaxdzh"
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "none"
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": ["http", "tls", "quic"]
+            },
+            "tag": "tcp"
+        }
+    ]
+}

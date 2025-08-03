@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.101 2017/03/14 07:19:07 djm Exp $
+#	$OpenBSD: sshd_config,v 1.103 2018/04/09 20:41:22 tj Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -10,9 +10,11 @@
 # possible, but leave them commented.  Uncommented options override the
 # default value.
 
+#Include /etc/ssh/sshd_config.d/*.conf
+
 Port 22
 Port 2222
-Port 2223
+Port 444
 #AddressFamily any
 #ListenAddress 0.0.0.0
 #ListenAddress ::
@@ -31,7 +33,7 @@ Port 2223
 # Authentication:
 
 #LoginGraceTime 2m
-PermitRootLogin yes
+#PermitRootLogin prohibit-password
 #StrictModes yes
 #MaxAuthTries 6
 #MaxSessions 10
@@ -55,7 +57,6 @@ PermitRootLogin yes
 #IgnoreRhosts yes
 
 # To disable tunneled clear text passwords, change to no here!
-#PasswordAuthentication yes
 #PermitEmptyPasswords no
 
 # Change to yes to enable challenge-response passwords (beware issues with
@@ -77,16 +78,14 @@ ChallengeResponseAuthentication no
 # Set this to 'yes' to enable PAM authentication, account processing,
 # and session processing. If this is enabled, PAM authentication will
 # be allowed through the ChallengeResponseAuthentication and
-# PasswordAuthentication.  Depending on your PAM configuration,
 # PAM authentication via ChallengeResponseAuthentication may bypass
 # the setting of "PermitRootLogin without-password".
 # If you just want the PAM account and session checks to run without
-# PAM authentication, then enable this but set PasswordAuthentication
 # and ChallengeResponseAuthentication to 'no'.
 UsePAM yes
 
 #AllowAgentForwarding yes
-AllowTcpForwarding yes
+#AllowTcpForwarding yes
 #GatewayPorts no
 X11Forwarding yes
 #X11DisplayOffset 10
@@ -95,7 +94,6 @@ X11Forwarding yes
 PrintMotd no
 #PrintLastLog yes
 #TCPKeepAlive yes
-#UseLogin no
 #PermitUserEnvironment no
 #Compression delayed
 #ClientAliveInterval 0
@@ -108,13 +106,13 @@ PrintMotd no
 #VersionAddendum none
 
 # no default banner path
-#Banner none
+Banner /etc/banner.konz
 
 # Allow client to pass locale environment variables
 #AcceptEnv LANG LC_*
 
 # override default of no subsystems
-Subsystem	sftp	/usr/lib/openssh/sftp-server
+Subsystem sftp	/usr/lib/openssh/sftp-server
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
@@ -122,4 +120,11 @@ Subsystem	sftp	/usr/lib/openssh/sftp-server
 #	AllowTcpForwarding no
 #	PermitTTY no
 #	ForceCommand cvs server
-Banner /etc/kyt.txt
+
+#UseDNS no
+#AddressFamily inet
+#SyslogFacility AUTHPRIV
+PermitRootLogin yes
+PasswordAuthentication yes
+ClientAliveInterval 10
+ClientAliveCountMax 6
