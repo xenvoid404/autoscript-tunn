@@ -294,12 +294,12 @@ install_vpn_services() {
     rm -f openvpn.sh
     
     # Install WebSocket (ePro)
-    wget -q -O /usr/sbin/ws-epro "${REPO}usr/sbin/ws-epro"
-    wget -q -O /usr/sbin/tunws.conf "${REPO}usr/sbin/tunws.conf"
+    wget -q -O /usr/local/bin/ws-epro "${REPO}usr/local/bin/ws-epro"
+    wget -q -O /usr/local/bin/tunws.conf "${REPO}usr/local/bin/tunws.conf"
     wget -q -O /etc/systemd/system/tunws.service "${REPO}etc/systemd/system/tunws.service"
-    chmod +x /usr/bin/ws
-    chmod 644 /usr/bin/tun.conf
-    systemctl enable ws
+    chmod +x /usr/local/bin/ws-epro
+    chmod 644 /usr/local/bin/tunws.conf
+    systemctl enable tunws
     
     print_success "VPN services installed successfully"
 }
