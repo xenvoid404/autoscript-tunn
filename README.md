@@ -1,60 +1,66 @@
+# Modern Tunneling Autoscript
 
+Autoscript tunneling modern yang dirancang untuk setup layanan tunneling di VPS dengan fokus pada efisiensi, maintainability, dan production-ready.
 
-### INSTALL SCRIPT 
+## Supported Protocols
+- SSH (OpenSSH)
+- Dropbear SSH
+- Xray-core (VMess, VLESS, Trojan)
+- WebSocket (ws)
+- OpenVPN
+
+## System Requirements
+- OS: Debian 11+ atau Ubuntu 22.04+
+- RAM: Minimal 512MB
+- Storage: Minimal 2GB free space
+- Root access
+
+## Project Structure
 ```
-apt install -y && apt update -y && apt upgrade -y && apt install lolcat -y && gem install lolcat && wget -q https://raw.githubusercontent.com/YuiVPN/vip/main/premi.sh && chmod +x premi.sh && ./premi.sh
-
-```
-
-### PERINTAH UPDATE
-```
-
-wget https://raw.githubusercontent.com/YuiVPN/vip/main/update.sh && chmod +x update.sh && ./update.sh
-
-```
-
-### TESTED ON OS 
-- UBUNTU 20.04.05
-- DEBIAN 10
-
-### FITUR TAMBAHAN
-- Tambah Swap 1GiB
-- Pemasangan yang dinamis
-- Tuning profile pada server
-- Xray Core by 
-- Penambahan fail2ban
-- Auto block sebagian ads indo by default
-- Auto clear log per 3 menit
-- Auto deler expired
-- User Details Akun
-
-### PORT INFO
-```
-- TROJAN WS 443
-- TROJAN GRPC 443
-- SHADOWSOCKS WS 443
-- SHADOWSOCKS GRPC 443
-- VLESS WS 443
-- VLESS GRPC 443
-- VLESS NONTLS 80
-- VMESS WS 443
-- VMESS GRPC 443
-- VMESS NONTLS 80
-- SSH WS / TLS 443
-- SSH NON TLS 8880
-- OVPN SSL/TCP 1194
-- SLOWDNS 5300
+autoscript/
+├── install.sh              # Main installer script
+├── config/                 # Configuration files
+│   ├── system.conf         # System configuration
+│   ├── ssh.conf           # SSH configuration template
+│   ├── dropbear.conf      # Dropbear configuration template
+│   └── xray.json          # Xray configuration template
+├── scripts/                # Core scripts
+│   ├── system/            # System setup scripts
+│   │   ├── deps.sh        # Dependencies installer
+│   │   ├── firewall.sh    # Firewall configuration
+│   │   └── optimize.sh    # System optimization
+│   ├── services/          # Service installation scripts
+│   │   ├── ssh.sh         # SSH & Dropbear setup
+│   │   ├── xray.sh        # Xray-core setup
+│   │   └── websocket.sh   # WebSocket setup
+│   └── accounts/          # Account management scripts
+│       ├── ssh-account.sh  # SSH account management
+│       ├── vmess-account.sh # VMess account management
+│       ├── vless-account.sh # VLESS account management
+│       └── trojan-account.sh # Trojan account management
+├── utils/                  # Utility functions
+│   ├── common.sh          # Common functions
+│   ├── logger.sh          # Logging utilities
+│   └── validator.sh       # Input validation
+└── logs/                   # Log files
+    └── install.log        # Installation log
 ```
 
-### SETTING CLOUDFLARE
+## Installation
+```bash
+# Download and run installer
+wget -O install.sh https://raw.githubusercontent.com/your-repo/autoscript/main/install.sh
+chmod +x install.sh
+./install.sh
 ```
-- SSL/TLS : FULL
-- SSL/TLS Recommender : OFF
-- GRPC : ON
-- WEBSOCKET : ON
-- Always Use HTTPS : OFF
-- UNDER ATTACK MODE : OFF
-```
-```
-```
-```
+
+## Features
+- Modern, clean code structure
+- Comprehensive logging
+- Input validation
+- Error handling
+- Production-ready configuration
+- Easy maintenance and updates
+
+## License
+MIT License
